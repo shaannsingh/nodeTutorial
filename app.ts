@@ -2,13 +2,41 @@ import express, { Request, Response } from "express";
 
 const app = express();
 const morgan = require("morgan");
+const mongoose = require("mongoose");
+const Blog = require("./models/blog");
 
+// Middleware
 app.set("view engine", "ejs");
-
-app.listen(3000);
-
 app.use(express.static("public"));
 app.use(morgan("dev"));
+
+// Routing
+
+app.get("/add-blog", (req, res) => {
+  const blog = new Blog({
+    title: "About my learning",
+    snippet: "So when I started to learn Node...",
+    body: "...I'll tell you later",
+  });
+
+  blog
+    .save()
+    .then((result: any) => {
+      res.send(result);
+    })
+    .catch((err: Error) => console.log(err));
+});
+
+const dbURI =
+  "mongodb+srv://shaandummy:cr33P3r6969*-.-!@nodetutorialcluster.mbbow.mongodb.net/node-tutorial?retryWrites=true&w=majority&appName=nodeTutorialCluster";
+
+mongoose
+  .connect(dbURI)
+  .then((result: typeof mongoose) => {
+    console.log("Connected to MongoDB, connecting to port 3000...");
+    app.listen(3000);
+  })
+  .catch((err: Error) => console.log(err));
 
 app.get("/", (req, res) => {
   const blogs = [
@@ -26,7 +54,6 @@ app.get("/", (req, res) => {
     },
   ];
   res.render("index", { title: "Home", blogs });
-  console.log(req.url, req.method);
 });
 
 app.get("/about", (req, res) => {
