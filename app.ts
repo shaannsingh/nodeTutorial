@@ -9,6 +9,7 @@ const Blog = require("./models/blog");
 // Middleware
 app.set("view engine", "ejs");
 app.use(express.static("public"));
+app.use(express.urlencoded({ extended: true }));
 app.use(morgan("dev"));
 
 const dbURI =
@@ -33,7 +34,7 @@ app.get("/about", (req, res) => {
 
 app.get("/blogs", (req, res) => {
   Blog.find()
-    .sort({ createdAt: -1 })
+    .sort({ createdAt: -1 }) //descending order
     .then((result: any) => {
       res.render("index", { title: "All Blogs", blogs: result });
     })
@@ -42,13 +43,21 @@ app.get("/blogs", (req, res) => {
     });
 });
 
-app.get("/blogs/create", (req, res) => {
-  res.render("create", { title: "Create" });
-  console.log(req.url, req.method);
+app.post("/blogs", (req, res) => {
+  const blog = new Blog(req.body);
+
+  blog
+    .save()
+    .then((result: any) => {
+      res.redirect("/blogs");
+    })
+    .catch((err: Error) => {
+      console.log(err);
+    });
 });
 
-app.use((req, res) => {
-  res.status(404).render("404", { title: "Not Found" });
+app.get("/blogs/create", (req, res) => {
+  res.render("create", { title: "Create" });
   console.log(req.url, req.method);
 });
 
@@ -83,4 +92,9 @@ app.get("/single-blog", (req, res) => {
     .catch((err: Error) => {
       console.log(err);
     });
+});
+
+app.use((req, res) => {
+  res.status(404).render("404", { title: "Not Found" });
+  console.log(req.url, req.method);
 });
